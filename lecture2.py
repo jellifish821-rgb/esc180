@@ -9,4 +9,9 @@ side_length = 4
 #still prints 24 as te value of perimeter has not been changed
 print(perimeter)
 
-#swap values
+#swap
+x = 3
+y = 9
+y, x = x, y
+
+#or create temp variable to store one variable before changing it
