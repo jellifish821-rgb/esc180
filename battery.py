@@ -24,26 +24,33 @@ def simulate_activity(activity, duration):
     global max_charge
     global overcharge_times
 
+    if duration_fast_charge_possible() == 0:
+        num_fast_charge_loop = 0
+    else:
+        num_fast_charge_loop = 1
+
     if activity == "charge":
-        for i in range(duration):
-            if cur_charge < max_charge:
-                if duration_fast_charge_possible() == 0: # if slow charge
-                    if cur_charge == 90:
-                        overcharge_times.append(cur_time)
+        for i in range(duration - duration_fast_charge_possible() + num_fast_charge_loop):
+            if duration_fast_charge_possible() == 0: # if slow charge
+                if cur_charge == 90:
+                    overcharge_times.append(cur_time)
 
-                        if (overcharge_times[-1] - overcharge_times[-3] < 360) and (overcharge_times[-3] > 0):
-                            good_battery_health = False
+                    if (overcharge_times[-1] - overcharge_times[-3] < 360) and (overcharge_times[-3] > 0):
+                        good_battery_health = False
 
-                    if good_battery_health == False:
-                        max_charge = 80
+                if good_battery_health == False:
+                    max_charge = 80
 
-                    if cur_charge < max_charge:
-                        cur_charge += 1
-                        cur_temp += 0.25
-                        cur_time += 1
 
-                else: # if fast charge
-                    for i in range(duration_fast_charge_possible()):
+                cur_time += 1
+                cur_temp += 0.25
+
+                if cur_charge < max_charge:
+                    cur_charge += 1
+
+
+            else: # if fast charge
+                for i in range(duration_fast_charge_possible()):
                         cur_charge += 3
                         cur_temp += 0.5
                         cur_time += 1
@@ -146,14 +153,14 @@ if __name__ == '__main__':
     print(duration_fast_charge_possible()) # 10
     simulate_activity("charge",80)
     print(get_cur_charge()) # 90
-    print(get_cur_temp()) # 22.5 **
+    print(get_cur_temp()) # 22.5
     print(get_cur_battery_health()) # False
     simulate_activity("use",40)
     print(get_cur_charge()) # 10
-    print(get_cur_temp()) # 62.5 **
+    print(get_cur_temp()) # 62.5
     simulate_activity("charge",80)
     print(get_cur_charge()) # 80
-    print(get_cur_temp()) # 82.5**
+    print(get_cur_temp()) # 82.5
 '''
     initialize()
     # add
