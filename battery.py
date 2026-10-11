@@ -41,8 +41,8 @@ def simulate_activity(activity, duration):
             cur_temp += 0.5 * fast_charge_duration
             cur_time += 1 * fast_charge_duration
 
-
-            for i in range(round(slow_charge_duration*6)): #update loops every 6th of a minute
+            #slow charge for whole minutes
+            for i in range(int(slow_charge_duration)):
 
                 #check for overcharge
                 if cur_charge == 90:
@@ -55,12 +55,36 @@ def simulate_activity(activity, duration):
                 if good_battery_health == False:
                     max_charge = 80
 
+                #update battery stats
+                cur_temp += 0.25
+                cur_time += 1
 
-                #updates stats for each 6th of a minute
                 if cur_charge < max_charge:
-                    cur_charge += 1/6
-                    cur_time += 1/6
-                    cur_temp += 0.25/6
+                    cur_charge += 1
+
+
+            #slow charge for fraction minutes
+            frac_slow_charge_duration = slow_charge_duration - int(slow_charge_duration)
+            if frac_slow_charge_duration != 0:
+                if cur_charge == 90:
+                    #record time of overcharge
+                    overcharge_times.append(cur_time)
+                    #check if overcharged 3 times within the past hour
+                    if (overcharge_times[-1] - overcharge_times[-3] < 360) and (overcharge_times[-3] > 0):
+                        good_battery_health = False
+
+                if good_battery_health == False:
+                    max_charge = 80
+
+                cur_temp += 0.25 * frac_slow_charge_duration
+                cur_time += 1 * frac_slow_charge_duration
+
+                if cur_charge < max_charge:
+                    cur_charge += 1 * frac_slow_charge_duration
+
+
+
+
 
     elif activity == "use":
         for i in range(duration):
@@ -76,6 +100,7 @@ def simulate_activity(activity, duration):
                 cur_temp -= 1
 
 
+
     elif activity == "idle":
         for i in range(duration):
             cur_time += 1
@@ -85,6 +110,8 @@ def simulate_activity(activity, duration):
 
             if cur_temp > 0:
                 cur_temp -= 1
+                if cur_temp < 0:
+                    cur_temp = 0
 
     else:
         pass
@@ -151,14 +178,8 @@ def charge_time_needed(minutes):
         return charge_time
 
 if __name__ == '__main__':
-    initialize()
-    cur_charge = 52
-    print(duration_fast_charge_possible())
-    print(charge_time_needed(40))
-    simulate_activity("charge", 10)
-    print(get_cur_charge())
 
-'''
+    initialize()
     print(get_cur_temp())
     print(duration_fast_charge_possible()) # 10
     print(charge_time_needed(50)) # 30
@@ -191,5 +212,9 @@ if __name__ == '__main__':
     print(get_cur_temp()) # 82.5
 
     initialize()
-    # add
-'''
+    cur_charge = 52
+    print(duration_fast_charge_possible())
+    print(charge_time_needed(40))
+    simulate_activity("charge", 10)
+    print(get_cur_charge())
+
