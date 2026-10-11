@@ -64,7 +64,7 @@ def simulate_activity(activity, duration):
                 cur_charge -= 2
                 cur_temp += 1
                 if cur_charge < 0:
-                    cur_charge == 0
+                    cur_charge = 0
 
             elif cur_charge == 0:
                 cur_temp -= 1
@@ -72,6 +72,8 @@ def simulate_activity(activity, duration):
 
     elif activity == "idle":
         for i in range(duration):
+            cur_time += 1
+
             if cur_charge > 0:
                 cur_charge -= 0.5
 
@@ -85,19 +87,32 @@ def simulate_activity(activity, duration):
 def duration_fast_charge_possible():
     global cur_temp
     global cur_charge
+    global mock_cur_charge
 
     charge_time = 0
-    mock_cur_temp = cur_temp
+    mock_cur_temp = cur_temp #Mock used to avoid updating true status, which is need for activity
     mock_cur_charge = cur_charge
-    if (0 <= cur_temp < 40) and cur_charge < 80 and good_battery_health == True:
-        while mock_cur_charge < 80 and mock_cur_temp < 40:
-            charge_time += 1
-            mock_cur_temp += 0.5
-            mock_cur_charge += 3
+    if (0 <= cur_temp < 40) and cur_charge < 80 and good_battery_health == True: #Checks all fast charge conditions
+        while mock_cur_charge < 80 and mock_cur_temp < 40: #Loops while conditions met
+            if mock_cur_charge == 78: #case correction for 78% charge
+                charge_time += (2/3)
+                mock_cur_temp += 0.5*(2/3)
+                mock_cur_charge += 2
+            elif mock_cur_charge == 79: # case correction for 79% charge
+                charge_time += 1/3
+                mock_cur_temp += 0.5*(1/3)
+                mock_cur_charge += 1
+            elif mock_cur_temp == 39.75: # case correction for 39.75 degreees
+                charge_time += 0.5
+                mock_cur_temp += 0.5/2
+                mock_cur_charge += 3/2
+            else: #otherwise, updates as usual
+                charge_time += 1
+                mock_cur_temp += 0.5
+                mock_cur_charge += 3
     else:
         return 0
-    return charge_time
-
+    return charge_time #Return duration of mock charge session as a float
 
 
 def get_cur_temp():
@@ -131,6 +146,8 @@ def charge_time_needed(minutes):
 
 if __name__ == '__main__':
     initialize()
+
+
     print(get_cur_temp())
     print(duration_fast_charge_possible()) # 10
     print(charge_time_needed(50)) # 30
@@ -161,7 +178,6 @@ if __name__ == '__main__':
     simulate_activity("charge",80)
     print(get_cur_charge()) # 80
     print(get_cur_temp()) # 82.5
-'''
+
     initialize()
     # add
-'''
