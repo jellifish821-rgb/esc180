@@ -19,11 +19,15 @@ def is_empty(board):
     
 def is_bounded(board, y_end, x_end, length, d_y, d_x):
     
-    if board[y_end - d_y][x_end + d_x] == " ":
-            end = "empty"
+    if board[y_end - d_y][x_end + d_x] == " " and y_end - d_y <=7 and x_end + d_x <= 7:
+        end = "empty"
+    else:
+        end = "full"
     
-    if board[y_end + (length*d_y)][x_end - (length*d_x)] == " ":
+    if board[y_end + (length*d_y)][x_end - (length*d_x)] == " " and (y_end + length*d_y >= 0) and (x_end - length*d_x >=0):
         start = "empty"
+    else: 
+        start = "full"
     
     if end == "empty" and start == "empty":
         return "OPEN"
@@ -40,25 +44,50 @@ def detect_row(board, col, y_start, x_start, length, d_y, d_x):
     open_seq_count = 0
     semi_open_seq_count = 0
     seq_len = 0
-    while x <= 7 and y <= 7:
+    while 0 <= x <= len(board)-1 and 0 <= y <= len(board[0])-1:
         if board[y][x] == col:
             seq_len += 1
         else:
             seq_len = 0
         
-        if seq_len == length:
+        if seq_len == length and board[y - d_y][x + d_x] != col and board[y + length*d_y][x - length*d_x] != col:
             if is_bounded(board, x, y, length, d_y, d_x) == "OPEN":
                 open_seq_count += 1
             elif is_bounded(board, x, y, length, d_y, d_x) == "SEMIOPEN":
-                semi_open_count += 1
+                semi_open_seq_count += 1
         
         x += d_x
         y -= d_y
     return open_seq_count, semi_open_seq_count
     
 def detect_rows(board, col, length):
-    ...
     open_seq_count, semi_open_seq_count = 0, 0
+    
+    y = 0
+    for x in range(len(board)):
+        result = detect_row(board, col, y, x, length, 0, 1)
+        open_seq_count += result[0]
+        semi_open_seq_count += result[1]
+        result = detect_row(board, col, y, x, length, 1, 1)
+        open_seq_count += result[0]
+        semi_open_seq_count += result[1]
+    
+    y = 7
+    for x in range(len(board)):
+        open_seq_count += detect_row(board, col, y, x, length, 1, -1)[0]
+        semi_open_seq_count += detect_row(board, col, y, x, length, 1, -1)[1]
+    
+    
+    x = 0
+    for y in range(len(board)):
+        open_seq_count += detect_row(board, col, y, x, length, 1, 0)[0]
+        semi_open_seq_count += detect_row(board, col, y, x, length, 1, 0)[1]
+        open_seq_count += detect_row(board, col, y, x, length, 1, 1)[0]
+        semi_open_seq_count += detect_row(board, col, y, x, length, 1, 1)[1]
+        open_seq_count += detect_row(board, col, y, x, length, 1, -1)[0]
+        semi_open_seq_count += detect_row(board, col, y, x, length, 1, -1)[1]
+
+        
     return open_seq_count, semi_open_seq_count
     
 def search_max(board):
@@ -348,5 +377,10 @@ if __name__ == '__main__':
     put_seq_on_board(board, 0, 0, 0, 1, 4, "b")
     print_board(board)
     print(detect_row(board, "b", 0, 0, 4, 0, 1))
+
+    put_seq_on_board(board, 3, 3, 1, -1, 2, "b")
+    print_board(board)
+    print(detect_rows(board, "b", 2))
+    
     #play_gomoku(8)
     
