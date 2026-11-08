@@ -20,22 +20,25 @@ def is_empty(board):
 def is_bounded(board, y_end, x_end, length, d_y, d_x):
     if y_end == 7 and d_y == 1: 
         end = "full"    
-    elif x_end == 7 and d_x == 1:
+    elif x_end == len(board) - 1 and d_x == 1:
         end = "full"
-    elif y_end == 0 and d_y == -1: # d_y can't be -1; did you mean to check x_end == 0 and d_x == -1?
+    elif x_end == 0 and d_x == -1:
         end = "full"
-    elif board[y_end + d_y][x_end + d_x] == " ": #Should both be addition? yep, fixed it now
+    elif board[y_end + d_y][x_end + d_x] == " ":
         end = "empty"
     else:
         end = "full"
+        
+    y_start = y_end - (length*d_y) + d_y
+    x_start = x_end - (length*d_x) + d_x
     
-    if (y_end - (length*d_y)+1) <= 0 and d_y == 1:
+    if y_start <= 0 and d_y == 1:
         start = "full"
-    elif (x_end - (length*d_x)+1) <= 0 and d_x == 1:
+    elif x_start <= 0 and d_x == 1:
         start = "full"
-    elif (x_end - (length*d_x)+1) == 7 and d_x == -1:
+    elif x_start == len(board[0]) - 1 and d_x == -1:
         start = "full"        
-    elif board[y_end - (length*d_y)][x_end - (length*d_x)] == " ": #Should both be subtraction? yep, fixed
+    elif board[y_start - d_y][x_start - d_x] == " ":
         start = "empty"
     else: 
         start = "full"
@@ -55,11 +58,19 @@ def detect_row(board, col, y_start, x_start, length, d_y, d_x):
     open_seq_count = 0
     semi_open_seq_count = 0
     seq_len = 0
-    while 0 <= y < len(board) and 0 <= x < len(board[0]):
-        if board[y][x] == col:
+    row = []
+    
+    #create row
+    for i in range(len(board)):
+        if i >= y_start:
+            row.append(board[i][x])
+            x += d_x
+            
+    for square in row:
+        if square == col:
             seq_len += 1
             
-            # check complete seq; 
+            # check complete seq;
             if 0 <= y + d_y < len(board) and 0 <= x + d_x < len(board[0]):
                 end = board[y + d_y][x + d_x]
             else:
@@ -288,17 +299,17 @@ def test_is_bounded():
 
 def test_is_bounded2():
     board = make_empty_board(8)
-    x = 3; y = 1; d_x = 1; d_y = 1; length = 3
+    x = 3; y = 4; d_x = -1; d_y = 1; length = 4
     put_seq_on_board(board, y, x, d_y, d_x, length, "w")
     print_board(board)
     
-    y_end = 3
-    x_end = 5
+    y_end = 7
+    x_end = 0
 
-    if is_bounded(board, y_end, x_end, length, d_y, d_x) == 'OPEN':
-        print("TEST CASE for is_bounded PASSED")
+    if is_bounded(board, y_end, x_end, length, d_y, d_x) == 'SEMIOPEN':
+        print("TEST CASE for is_bounded2 PASSED")
     else:
-        print("TEST CASE for is_bounded FAILED")
+        print("TEST CASE for is_bounded2 FAILED")
 
 def test_detect_row():
     board = make_empty_board(8)
@@ -468,7 +479,7 @@ if __name__ == '__main__':
     
     test_is_bounded2()
     test_detect_row2()
-   
+    '''
     test_is_empty()
     test_is_bounded()
     test_detect_row()
@@ -486,6 +497,6 @@ if __name__ == '__main__':
     print_board(board)
     print(detect_row(board, "b", 0, 6, 2, 1,-1))
     print(detect_rows(board, "b", 2))
-
+    '''
     
     #play_gomoku(8)
