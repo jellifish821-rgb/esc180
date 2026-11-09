@@ -10,7 +10,7 @@ Author(s): Michael Guerzhoy with tests contributed by Siavash Kazemian.  Last mo
 """
 
 def is_empty(board):
-    for row in board: #board gives int of edge dimention
+    for row in board:
         for square in row:
             if square != " ":
                 return False
@@ -33,7 +33,7 @@ def is_bounded(board, y_end, x_end, length, d_y, d_x):
         start = "full"
     elif (x_end - (length*d_x) + 1) <= 0 and d_x == 1:
         start = "full"
-    elif (x_end - (length*d_x) - 1) == (len(board[0]) - 1) and d_x == -1: #+1 --> -1
+    elif (x_end - (length*d_x) - 1) == (len(board[0]) - 1) and d_x == -1:
         start = "full"
     elif board[y_end - (length*d_y)][x_end - (length*d_x)] == " ":
         start = "empty"
@@ -76,7 +76,7 @@ def detect_row(board, col, y_start, x_start, length, d_y, d_x):
 
 
         if seq_len == length and end != col and start != col:
-            if is_bounded(board, y, x, length, d_y, d_x) == "OPEN": #x and y were switched
+            if is_bounded(board, y, x, length, d_y, d_x) == "OPEN":
                 open_seq_count += 1
             elif is_bounded(board, y, x, length, d_y, d_x) == "SEMIOPEN":
                 semi_open_seq_count += 1
@@ -87,7 +87,7 @@ def detect_row(board, col, y_start, x_start, length, d_y, d_x):
 
     return open_seq_count, semi_open_seq_count
 
-def detect_closed_row(board, col, y_start, x_start, length, d_y, d_x):
+def detect_winning_row(board, col, y_start, x_start, length, d_y, d_x):
     y = y_start
     x = x_start
     closed_seq_count = 0
@@ -119,7 +119,7 @@ def detect_closed_row(board, col, y_start, x_start, length, d_y, d_x):
 
     return closed_seq_count
 
-def detect_rows(board, col, length): #Changed at large
+def detect_rows(board, col, length):
     open_seq_count, semi_open_seq_count = 0, 0
 
     y = 0
@@ -132,7 +132,7 @@ def detect_rows(board, col, length): #Changed at large
         open_seq_count += result[0]
         semi_open_seq_count += result[1]
 
-        result = detect_row(board, col, y, x, length, 1, -1)#added
+        result = detect_row(board, col, y, x, length, 1, -1)
         open_seq_count += result[0]
         semi_open_seq_count += result[1]
 
@@ -146,15 +146,8 @@ def detect_rows(board, col, length): #Changed at large
         open_seq_count += result[0]
         semi_open_seq_count += result[1]
 
-        result = detect_row(board, col, y, x, length, 1, -1)
-        open_seq_count += result[0]
-        semi_open_seq_count += result[1]
-
     x = 7
-    for y in range(len(board)): #added
-        result = detect_row(board, col, y, x, length, 1, 1)
-        open_seq_count += result[0]
-        semi_open_seq_count += result[1]
+    for y in range(len(board)):
 
         result = detect_row(board, col, y, x, length, 1, -1)
         open_seq_count += result[0]
@@ -164,8 +157,10 @@ def detect_rows(board, col, length): #Changed at large
     return open_seq_count, semi_open_seq_count
 
 def search_max(board):
-    best_score = 0
+    best_score = score(board)
     new_score = 0
+    move_y = -1
+    move_x = -1
     for y in range(len(board)):
         for x in range(len(board[0])):
             if board[y][x] == ' ':
@@ -176,8 +171,15 @@ def search_max(board):
                     move_y = y
                     move_x = x
                 board[y][x] = ' '
-
     return move_y, move_x
+
+    if move_y == -1:
+        for y in range(len(board)):
+            for x in range(len(board[0])):
+                if board[y][x] == ' ':
+                    move_y = y
+                    move_x = x
+                    return move_y, move_x
 
 def score(board):
     MAX_SCORE = 100000
@@ -209,22 +211,15 @@ def score(board):
 
 def is_win(board):
 
-    # check for closed 5 in a row
-    is_closed_5 = False
     possible_d = [(1,0), (0,1), (1,1), (1,-1)] #y,x
 
     for y in range(len(board[0])):
         for x in range(len(board)):
             for d in possible_d:
-                if detect_closed_row(board, "b", y, x, 5, d[0], d[1]) >= 1:
+                if detect_winning_row(board, "b", y, x, 5, d[0], d[1]) >= 1:
                     return ("Black won")
-                if detect_closed_row(board, "w", y, x, 5, d[0], d[1]) >= 1:
+                if detect_winning_row(board, "w", y, x, 5, d[0], d[1]) >= 1:
                     return ("White won")
-
-    if detect_rows(board, 'w', 5)[0] >= 1 or detect_rows(board, 'w', 5)[1] >= 1: #can be open or semiopen
-        return("White won")
-    if detect_rows(board, 'b', 5)[0] >= 1 or detect_rows(board, 'b', 5)[1] >= 1:
-        return("Black won")
 
     for y in range(len(board)):
         for x in range(len(board[0])):
