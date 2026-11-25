@@ -66,16 +66,40 @@ def build_semantic_descriptors(sentences):
 
 def build_semantic_descriptors_from_files(filenames):
     #create 1 file for all text
-    with open('complied_file', 'w') as complied_file:
+    with open('complied_file', 'w', encoding ='latin1') as complied_file:
         for file in filenames:
-            with open(file, 'r') as file:
+            with open(file, 'r', encoding='latin1') as file:
                 text = file.read()
             complied_file.write(text)
+        full_text = complied_file.read()
 
-    text_as_list = []
-    # add here
 
-    return semantic_descriptors(text_as_list)
+    return semantic_descriptors(convert_txt_to_ls(full_text))
+
+#helper function
+def convert_txt_to_ls(full_text):
+    L = [] #append to this list
+
+    #clean up text where sentences are seperated by . and the punctuation is removed on last sentence
+    full_text = full_text.lower().replace("?", ".").replace("!", ".")
+    full_text = full_text[:-1]
+
+    sentences = full_text.split(".")
+
+    for sentence in sentences:
+        #remove leading whitespace
+        if sentence[0] == " ":
+            sentence = sentence.replace(" ", "", 1)
+
+        #remove punctuation
+        for character in sentence:
+            if character.isalpha() == False and character.isnumeric() == False:
+                sentence.replace(character, "")
+
+        word_list = sentence.split(" ")
+        L.append(word_list)
+
+    return L
 
 
 def most_similar_word(word, choices, semantic_descriptors, similarity_fn):
@@ -95,4 +119,9 @@ if __name__ == "__main__":
 "disease", "and", "do", "not", "know", "for", "certain",
 "what", "ails", "me"]]
     print(build_semantic_descriptors(sentences1))
+
+
+    text2 = "I am an apple. I am a star. i like to eat clouds. I can build a bridge! hurray."
+    print(convert_txt_to_ls(text2))
+    print(build_semantic_descriptors(convert_txt_to_ls(text2)))
 
