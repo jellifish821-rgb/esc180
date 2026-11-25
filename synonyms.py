@@ -23,12 +23,8 @@ def cosine_similarity(vec1, vec2):
     for value in vec1.values():
         ls_vec1.append(value)
 
-    print(ls_vec1)
-
     for value in vec2.values():
         ls_vec2.append(value)
-
-    print(ls_vec2)
 
     abs_vec1 = 0
     abs_vec2 = 0
@@ -36,13 +32,9 @@ def cosine_similarity(vec1, vec2):
         abs_vec1 += ls_vec1[i]**2
     abs_vec1 = math.sqrt(abs_vec1)
 
-    print(abs_vec1)
-
     for i in range(len(ls_vec2)):
         abs_vec2 += ls_vec2[i]**2
     abs_vec2 = math.sqrt(abs_vec2)
-
-    print(abs_vec2)
 
     dot_prod = 0
     for key1 in vec1.keys():
@@ -54,16 +46,37 @@ def cosine_similarity(vec1, vec2):
 
 
 def build_semantic_descriptors(sentences):
+    d = {}
     for sentence in sentences:
+        for word in sentence:
+            if word not in d.keys():
+                d[word] = {} # create new key, word; and assign it an empty dictionary
 
+            #update semantic sim for word; by updating it with the other words(w) in the sentence
+            for w in sentence:
+                if w != word:
+                    if w in d[word].keys():
+                        d[word][w] += 1
+                    else:
+                        d[word][w] = 1
 
-
-
+    return d
 
 
 
 def build_semantic_descriptors_from_files(filenames):
-    pass
+    #create 1 file for all text
+    with open('complied_file', 'w') as complied_file:
+        for file in filenames:
+            with open(file, 'r') as file:
+                text = file.read()
+            complied_file.write(text)
+
+    text_as_list = []
+    # add here
+
+    return semantic_descriptors(text_as_list)
+
 
 def most_similar_word(word, choices, semantic_descriptors, similarity_fn):
     pass
@@ -73,5 +86,13 @@ def run_similarity_test(filename, semantic_descriptors, similarity_fn):
 
 
 if __name__ == "__main__":
-    print(cosine_similarity({"a": 1, "b": 2, "c": 3},
-{"b": 4, "c": 5, "d": 6}))
+    print(cosine_similarity({"a": 1, "b": 2, "c": 3}, {"b": 4, "c": 5, "d": 6}))
+    sentences1 = [["i", "am", "a", "sick", "man"],
+["i", "am", "a", "spiteful", "man"],
+["i", "am", "an", "unattractive", "man"],
+["i", "believe", "my", "liver", "is", "diseased"],
+["however", "i", "know", "nothing", "at", "all", "about", "my",
+"disease", "and", "do", "not", "know", "for", "certain",
+"what", "ails", "me"]]
+    print(build_semantic_descriptors(sentences1))
+
