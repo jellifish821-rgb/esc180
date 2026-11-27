@@ -66,15 +66,21 @@ def build_semantic_descriptors(sentences):
 
 def build_semantic_descriptors_from_files(filenames):
     #create 1 file for all text
+    text = "" #I was having trouble opening files before, so I added this code
+    for file in filenames:
+        with open(file, 'r', encoding='latin1') as file:
+            text += file.read()
+    '''
     with open('complied_file', 'w', encoding ='latin1') as complied_file:
         for file in filenames:
             with open(file, 'r', encoding='latin1') as file:
                 text = file.read()
             complied_file.write(text)
         full_text = complied_file.read()
+    '''
 
 
-    return semantic_descriptors(convert_txt_to_ls(full_text))
+    return build_semantic_descriptors(convert_txt_to_ls(text))
 
 #helper function
 def convert_txt_to_ls(full_text):
@@ -84,7 +90,7 @@ def convert_txt_to_ls(full_text):
     new_text = full_text.lower().replace("?", ".").replace("!", ".")
 
     #punctuation is removed on last sentence
-    new_text = full_text[:-1]
+    new_text = new_text[:-1]
 
     sentences = new_text.split(".")
 
@@ -97,7 +103,7 @@ def convert_txt_to_ls(full_text):
 
         #remove punctuation
         for character in sentence:
-            if character.isalpha() == False and character.isnumeric() == False:
+            if character != " " and character.isalpha() == False and character.isnumeric() == False:
                 sentence = sentence.replace(character, "") # should remove punctuation now, it didn;t work as replace() doesn't modify the string in place and I forgot reassign the altered senetence to a variable
 
         word_list = sentence.split(" ")
@@ -109,9 +115,10 @@ def convert_txt_to_ls(full_text):
 def most_similar_word(word, choices, semantic_descriptors, similarity_fn):
     pick = None
     max_close = -1
-    word_vec = semantic_descriptors[word]
+    if word in semantic_descriptors.keys(): # added conditional
+        word_vec = semantic_descriptors[word]
 
-    for option in choices:
+    for option in choices: #ass similar conditional here?
         option_vec = semantic_descriptors[option]
         closeness = similarity_fn(word_vec, option_vec)
         if closeness > max_close:
@@ -121,7 +128,7 @@ def most_similar_word(word, choices, semantic_descriptors, similarity_fn):
     return pick
 
 def run_similarity_test(filename, semantic_descriptors, similarity_fn):
-    sentances = build_semantic_descriptors_from_files(filename)
+    sentences = build_semantic_descriptors_from_files(filename)
     dictionary = semantic_descriptors
     choices = []
     for key in dictionary:
@@ -136,7 +143,7 @@ def run_similarity_test(filename, semantic_descriptors, similarity_fn):
 
 
 if __name__ == "__main__":
-'''
+    '''
     print(cosine_similarity({"a": 1, "b": 2, "c": 3}, {"b": 4, "c": 5, "d": 6}))
     sentences1 = [["i", "am", "a", "sick", "man"],
 ["i", "am", "a", "spiteful", "man"],
@@ -151,8 +158,11 @@ if __name__ == "__main__":
     text2 = "I am an apple. I am a star; i like to eat clouds- I can, build a bridge! hurray."
     print(convert_txt_to_ls(text2))
     print(build_semantic_descriptors(convert_txt_to_ls(text2)))
-'''
+    '''
     alice = build_semantic_descriptors_from_files(["Alice.txt"])
+    print(alice)
     word = "mad"
-    choices = ["rabbit", "queen", "hatter", "hare", "march", "cheshire-cat"]
+    choices = ["rabbit", "queen", "hatter", "hare", "march"]
     print(most_similar_word(word, choices, alice, cosine_similarity))
+
+
