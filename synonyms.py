@@ -80,21 +80,25 @@ def build_semantic_descriptors_from_files(filenames):
 def convert_txt_to_ls(full_text):
     L = [] #append to this list
 
-    #clean up text where sentences are seperated by . and the punctuation is removed on last sentence
-    full_text = full_text.lower().replace("?", ".").replace("!", ".")
-    full_text = full_text[:-1]
+    #clean up text where sentences are seperated by .
+    new_text = full_text.lower().replace("?", ".").replace("!", ".")
 
-    sentences = full_text.split(".")
+    #punctuation is removed on last sentence
+    new_text = full_text[:-1]
+
+    sentences = new_text.split(".")
 
     for sentence in sentences:
-        #remove leading whitespace
-        if sentence[0] == " ":
-            sentence = sentence.replace(" ", "", 1)
+
+        #remove leading whitespace ##The functions sometimes gives lists of len0, so the indexing causes errors ### as in sentence could be len 0? then adding a conditional should catch it right? like below?
+        if len(sentence) != 0:
+            if sentence[0] == " ":
+                sentence = sentence.replace(" ", "", 1)
 
         #remove punctuation
         for character in sentence:
             if character.isalpha() == False and character.isnumeric() == False:
-                sentence.replace(character, "")
+                sentence = sentence.replace(character, "") # should remove punctuation now, it didn;t work as replace() doesn't modify the string in place and I forgot reassign the altered senetence to a variable
 
         word_list = sentence.split(" ")
         L.append(word_list)
@@ -103,13 +107,36 @@ def convert_txt_to_ls(full_text):
 
 
 def most_similar_word(word, choices, semantic_descriptors, similarity_fn):
-    pass
+    pick = None
+    max_close = -1
+    word_vec = semantic_descriptors[word]
+
+    for option in choices:
+        option_vec = semantic_descriptors[option]
+        closeness = similarity_fn(word_vec, option_vec)
+        if closeness > max_close:
+            max_close = closeness
+            pick = option
+
+    return pick
 
 def run_similarity_test(filename, semantic_descriptors, similarity_fn):
-    pass
+    sentances = build_semantic_descriptors_from_files(filename)
+    dictionary = semantic_descriptors
+    choices = []
+    for key in dictionary:
+        choices.append(key)
+    points = 0
+    guesses = 0
+    for descipt in semantic_descriptors:
+        guesses += 1
+        if descipt == most_similar_word(descipt, choices, semantic_descriptors, similarity_fn):
+            points += 1
+    return (points/guess)*100
 
 
 if __name__ == "__main__":
+'''
     print(cosine_similarity({"a": 1, "b": 2, "c": 3}, {"b": 4, "c": 5, "d": 6}))
     sentences1 = [["i", "am", "a", "sick", "man"],
 ["i", "am", "a", "spiteful", "man"],
@@ -121,7 +148,11 @@ if __name__ == "__main__":
     print(build_semantic_descriptors(sentences1))
 
 
-    text2 = "I am an apple. I am a star. i like to eat clouds. I can build a bridge! hurray."
+    text2 = "I am an apple. I am a star; i like to eat clouds- I can, build a bridge! hurray."
     print(convert_txt_to_ls(text2))
     print(build_semantic_descriptors(convert_txt_to_ls(text2)))
-
+'''
+    alice = build_semantic_descriptors_from_files(["Alice.txt"])
+    word = "mad"
+    choices = ["rabbit", "queen", "hatter", "hare", "march", "cheshire-cat"]
+    print(most_similar_word(word, choices, alice, cosine_similarity))
