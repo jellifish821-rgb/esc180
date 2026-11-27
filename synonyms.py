@@ -103,7 +103,7 @@ def convert_txt_to_ls(full_text):
 
         #remove punctuation
         for character in sentence:
-            if character != " " and character.isalpha() == False and character.isnumeric() == False:
+            if character != " " and character.isalpha() == False and character.isnumeric() == False and character != "'":
                 sentence = sentence.replace(character, "") # should remove punctuation now, it didn;t work as replace() doesn't modify the string in place and I forgot reassign the altered senetence to a variable
 
         word_list = sentence.split(" ")
@@ -118,7 +118,7 @@ def most_similar_word(word, choices, semantic_descriptors, similarity_fn):
     if word in semantic_descriptors.keys(): # added conditional
         word_vec = semantic_descriptors[word]
 
-    for option in choices: #ass similar conditional here?
+    for option in choices: #add similar conditional here?
         option_vec = semantic_descriptors[option]
         closeness = similarity_fn(word_vec, option_vec)
         if closeness > max_close:
@@ -128,23 +128,41 @@ def most_similar_word(word, choices, semantic_descriptors, similarity_fn):
     return pick
 
 def run_similarity_test(filename, semantic_descriptors, similarity_fn):
-    sentences = build_semantic_descriptors_from_files(filename)
-    dictionary = semantic_descriptors
-    choices = []
-    for key in dictionary:
-        choices.append(key)
+    #File name gives words, were the first is what we compare to and the second in correct
+    game = seperate_by_line(filename)
     points = 0
     guesses = 0
-    for descipt in semantic_descriptors:
-        guesses += 1
-        if descipt == most_similar_word(descipt, choices, semantic_descriptors, similarity_fn):
+    for round in range(len(game)):
+        given = game[round][0]
+        correct = game[round][1]
+        possibles = game[round][2:] # changed [1:] to [2:] because slicing index is inclusve on the start
+        if most_similar_word(given, possibles, semantic_descriptors, similarity_fn) == correct:
             points += 1
-    return (points/guess)*100
+        guesses += 1
+
+    return (points/guesses)*100
+
+def seperate_by_line(filename):
+    text = "" #I was having trouble opening files before, so I added this code
+    with open(filename, 'r', encoding='latin1') as file:
+        text += file.read()
+    L = [] #append to this list
+
+    sentences = text.split("\n")
+
+    for sentence in sentences:
+        word = sentence.split(" ")
+        L.append(word)
+    return L
 
 
 if __name__ == "__main__":
+    text2 = "I am an apple. I am a star; i like to eat clouds-I can, build a bridge! hurray."
+    most_similar_word("cloud",[hurray, am, I, star], build_semantic_descriptors(convert_txt_to_ls(text2)), cosine_similarity)
+
     '''
-    print(cosine_similarity({"a": 1, "b": 2, "c": 3}, {"b": 4, "c": 5, "d": 6}))
+
+    (cosine_similarity({"a": 1, "b": 2, "c": 3}, {"b": 4, "c": 5, "d": 6}))
     sentences1 = [["i", "am", "a", "sick", "man"],
 ["i", "am", "a", "spiteful", "man"],
 ["i", "am", "an", "unattractive", "man"],
@@ -155,14 +173,17 @@ if __name__ == "__main__":
     print(build_semantic_descriptors(sentences1))
 
 
-    text2 = "I am an apple. I am a star; i like to eat clouds- I can, build a bridge! hurray."
+
     print(convert_txt_to_ls(text2))
     print(build_semantic_descriptors(convert_txt_to_ls(text2)))
-    '''
     alice = build_semantic_descriptors_from_files(["Alice.txt"])
-    print(alice)
+    print(alice["cheshirecat"])
+
     word = "mad"
+
     choices = ["rabbit", "queen", "hatter", "hare", "march"]
     print(most_similar_word(word, choices, alice, cosine_similarity))
+    print(run_similarity_test("test_sim.txt", alice, cosine_similarity))
+    '''
 
 
